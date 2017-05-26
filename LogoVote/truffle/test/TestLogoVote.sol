@@ -6,7 +6,7 @@ import "../contracts/LogoVote.sol";
 import "../contracts/Vote.sol";
 
 contract TestLogoVote {
-  
+
   function testInitialUsingDeployedContract() {
     LogoVote logovote = LogoVote(DeployedAddresses.LogoVote());
     Vote vote = Vote(logovote.vote());
@@ -23,6 +23,7 @@ contract TestLogoVote {
   function testInitialWithNewVote() {
     Vote vote = new Vote();
     Assert.equal(vote.totalSupply(), 10000, "Vote should have 10000 totalSupply initially");
+    Assert.equal(vote.symbol(), "EthTaipei Logo", "Symbol should be EthTaipei Logo");
   }
 
 }
