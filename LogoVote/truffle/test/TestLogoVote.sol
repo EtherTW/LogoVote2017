@@ -13,6 +13,7 @@ contract TestLogoVote {
 
     Assert.equal(logovote.totalReward(), 0, "LogoVote should have 0 reward initially");
     Assert.equal(vote.totalSupply(), 10000, "Vote should have 10000 totalSupply initially");
+    Assert.equal(vote.initialSupply(), 10000, "Vote should have 10000 initialSupply initially");
   }
 
   function testInitialWithNewLogoVote() {
@@ -23,7 +24,10 @@ contract TestLogoVote {
   function testInitialWithNewVote() {
     Vote vote = new Vote();
     Assert.equal(vote.totalSupply(), 10000, "Vote should have 10000 totalSupply initially");
-    Assert.equal(vote.symbol(), "EthTaipei Logo", "Symbol should be EthTaipei Logo");
+    Assert.equal(vote.initialSupply(), 10000, "Vote should have 10000 initialSupply initially");
+    // https://stackoverflow.com/questions/42783106/member-equal-is-not-available-in-typelibrary-assert
+    // Member "equal" is not available in type(library Assert) outside of storage.
+    // Assert.equal(vote.symbol(), "EthTaipei Logo", "Symbol should be \"EthTaipei Logo\"");
   }
 
 }
