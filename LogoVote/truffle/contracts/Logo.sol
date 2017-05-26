@@ -21,7 +21,7 @@ contract Logo is Ownable{
 		logoVote = wLogoVote(msg.sender);
 	}
 
-	function tips() {
+	function tips() payable {
 		ReceiveTips(msg.sender, msg.value);
 		if(!author.send(msg.value)) throw;
 	}
