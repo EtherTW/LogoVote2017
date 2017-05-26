@@ -23,3 +23,6 @@ before_install:
   - npm --version
   - gcc --version
   - g++ --version
+
+before_script:
+  - npm install -g truffle
