@@ -16,6 +16,6 @@ truffle init
 ###  test contract
 
 ```
-testrpc
+testrpc &
 truffle test
 ```
