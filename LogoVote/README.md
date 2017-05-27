@@ -1,3 +1,11 @@
+# Logo Vote 2017
+
+Vote a new logo for Taipei Ethereum Meetup with smart contracts!
+
+Read the [general guideline](https://docs.google.com/document/d/1hHLMnYxf4SAOSwGolDjZ1gTDEXoJAuroYTO5kBttTUE) and this [technical document](https://docs.google.com/document/d/1ThfWKQFa9q2hSXl4_y_dFM1uF3hcP9iP8Xm8tfV567U/) for more detail.
+
+## Developing
+
 ### install truffle
 
 ```
