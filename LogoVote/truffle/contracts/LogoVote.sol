@@ -12,6 +12,8 @@ contract LogoVote is Pausable, SafeMath{
 	Logo[] public logos;
 
 	mapping (address => uint) backers;
+	mapping (address => bool) rewards;
+	uint rewardClaimed;
 
 	uint public votePerETH;
 	uint public totalReward;
@@ -38,6 +40,7 @@ contract LogoVote is Pausable, SafeMath{
 		totalReward = 0;
 		startBlock = block.number;
 		endBlock = startBlock + ( 20 * 24 * 60 * 60 / 15 ); //end in 20 days
+		rewardClaimed = 0;
 	}
 
 	function sendToFaucet(uint _amount) onlyOwner {
@@ -60,12 +63,17 @@ contract LogoVote is Pausable, SafeMath{
 		ReceiveDonate(beneficiary, msg.value);
 	}
 
-	function withdrawDonates () onlyInEmergency {
-		uint ethToSend = backers[msg.sender];
-		if(ethToSend == 0) throw;
-		if(this.balance < ethToSend) throw;
-		backers[msg.sender] = 0;
-		if(!msg.sender.send(ethToSend)) throw;
+	function claimReward (address _receiver) stopInEmergency afterEnd {
+		if (!isLogo(msg.send)) throw;
+		if (rewards[msg.sender]) throw;
+		if (rewardClaimed == logos.length) throw;
+		uint amount = totalReward / safeMul(2, logos.length); // all logos share the 50% of rewards
+		if (msg.sender == winner) {
+			amount = safeAdd(amount, totalReward/2);
+		}
+		rewards[msg.sender] = true;
+		rewardClaimed = safeAdd(rewardClaimed, 1);
+		if (!msg.sender.send(amount)) throw;
 	}
 
 	function claimReward (address _receiver) stopInEmergency afterEnd {
