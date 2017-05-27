@@ -54,8 +54,8 @@ contract LogoVote is Pausable, SafeMath{
 	function donate(address beneficiary) internal stopInEmergency respectTimeFrame {
 		uint voteToSend = safeMul(msg.value, votePerETH)/(1 ether);
 		if (!vote.transfer(beneficiary, voteToSend)) throw; 
-		backers[beneficiary] += msg.value;
-		totalReward += msg.value;
+		backers[beneficiary] = safeAdd(backers[beneficiary], msg.value);
+		totalReward = safeAdd(totalReward, msg.value);
 
 		ReceiveDonate(beneficiary, msg.value);
 	}
