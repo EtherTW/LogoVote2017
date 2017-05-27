@@ -64,7 +64,7 @@ contract LogoVote is Pausable, SafeMath{
 	}
 
 	function claimReward (address _receiver) stopInEmergency afterEnd {
-		if (!isLogo(msg.send)) throw;
+		if (!isLogo(msg.sender)) throw;
 		if (rewards[msg.sender]) throw;
 		if (rewardClaimed == logos.length) throw;
 		uint amount = totalReward / safeMul(2, logos.length); // all logos share the 50% of rewards
@@ -88,6 +88,7 @@ contract LogoVote is Pausable, SafeMath{
 	}
 
 	function claimWinner () onlyOwner afterEnd {
+		if (isLogo(winner)) throw;
 		winner = logos[0];
 		for (uint8 i = 1; i < logos.length; i++) {
 			if (vote.balanceOf(logos[i]) > vote.balanceOf(winner))
