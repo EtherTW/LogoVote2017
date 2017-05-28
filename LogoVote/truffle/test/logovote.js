@@ -61,5 +61,35 @@ contract('LogoVote', function (accounts) {
     })
   })
 
+  it('donate should be ok', function () {
+    var logoVote
+    return LogoVote.deployed().then(function (instance) {
+      logoVote = instance
+      // Sending Ether / Triggering the fallback function
+      return logoVote.sendTransaction({
+        from: accounts[0],
+        value: web3.toWei(1.1, "ether")
+      })
+    }).then(function (_txr) {
+      // console.log(_txr)
+      assert.isOk(_txr)
+      return logoVote.totalReward.call()
+    }).then(function (_totalReward) {
+      assert.equal(_totalReward.valueOf(), web3.toWei(1.1, "ether"))
+      return Promise.all([logoVote.sendTransaction({
+        from: accounts[1],
+        value: web3.toWei(2.2, "ether")
+      }), logoVote.sendTransaction({
+        from: accounts[2],
+        value: web3.toWei(3.3, "ether")
+      })])
+    }).then(function (txs) {
+      assert.isOk(txs)
+      return logoVote.totalReward.call()
+    }).then(function (_totalReward) {
+      assert.equal(_totalReward.valueOf(), web3.toWei(6.6, "ether"))
+    })
+  })
+
 
 })

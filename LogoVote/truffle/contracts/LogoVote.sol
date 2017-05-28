@@ -77,11 +77,6 @@ contract LogoVote is Pausable, SafeMath{
 		if (!msg.sender.send(amount)) throw;
 	}
 
-	function claimRewardV1 (address _receiver) stopInEmergency afterEnd {
-		if (msg.sender != winner) throw;
-		if (!_receiver.send(this.balance)) throw;
-	}
-
 	function isLogo (address _logoAddress) constant returns (bool) {
 		for (uint8 i = 0; i < logos.length; i++) {
 			if (logos[i] == _logoAddress) return true;
