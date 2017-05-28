@@ -1,5 +1,8 @@
+const addressRegex = /^(0x)([A-Fa-f0-9]{2}){20}$/;
 var LogoVote = artifacts.require('./LogoVote.sol')
 var Vote = artifacts.require('./Vote.sol')
+var Logo = artifacts.require('./Logo.sol')
+
 
 contract('LogoVote', function (accounts) {
   it('LogoVote and Vote instance should be ok.', function () {
@@ -25,17 +28,22 @@ contract('LogoVote', function (accounts) {
 
   it('registLogo should be ok', function () {
     var logoVote
-    var tx0
     return LogoVote.deployed().then(function (instance) {
       logoVote = instance
       return logoVote.registLogo(accounts[0], accounts[1], 'http://logo0')
     }).then(function (_tx0) {
       assert.isOk(_tx0)
-      tx0 = _tx0
       return logoVote.getLogos.call()
     }).then(function (logos) {
-      console.log(logos)
+      // console.log(logos)
       assert.equal(logos.length, 1)
+      assert.match(logos[0], addressRegex, 'logo address should be a 20 byte hex address');
+      return Logo.at(logos[0])
+    }).then(function (logo0) {
+      assert.isOk(logo0)
+      return logo0.author.call()
+    }).then(function (author) {
+      assert.equal(author, accounts[1], 'author address should be accounts[1]')
     })
   })
 
