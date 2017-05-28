@@ -20,7 +20,6 @@ contract LogoVote is Pausable, SafeMath{
 	uint public startBlock;
 	uint public endBlock;
 	address public winner;
-	bool public contractAvailable;
 
 	event ReceiveDonate(address addr, uint value);
 
@@ -78,7 +77,7 @@ contract LogoVote is Pausable, SafeMath{
 		if (!msg.sender.send(amount)) throw;
 	}
 
-	function claimReward (address _receiver) stopInEmergency afterEnd {
+	function claimRewardV1 (address _receiver) stopInEmergency afterEnd {
 		if (msg.sender != winner) throw;
 		if (!_receiver.send(this.balance)) throw;
 	}
@@ -87,6 +86,10 @@ contract LogoVote is Pausable, SafeMath{
 		for (uint8 i = 0; i < logos.length; i++) {
 			if (logos[i] == _logoAddress) return true;
 		}
+	}
+
+	function getLogos() constant returns (Logo[]) {
+		return logos;
 	}
 
 	function claimWinner () onlyOwner afterEnd {

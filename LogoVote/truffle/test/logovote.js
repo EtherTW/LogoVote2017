@@ -22,4 +22,44 @@ contract('LogoVote', function (accounts) {
       assert.equal(totalSupply.valueOf(), 10000)
     })
   })
+
+  it('registLogo should be ok', function () {
+    var logoVote
+    var tx0
+    return LogoVote.deployed().then(function (instance) {
+      logoVote = instance
+      return logoVote.registLogo(accounts[0], accounts[1], 'http://logo0')
+    }).then(function (_tx0) {
+      assert.isOk(_tx0)
+      tx0 = _tx0
+      return logoVote.getLogos.call()
+    }).then(function (logos) {
+      console.log(logos)
+      assert.equal(logos.length, 1)
+    })
+  })
+
+  it('isLogo should be ok', function () {
+    var logoVote
+    return LogoVote.deployed().then(function (instance) {
+      logoVote = instance
+      return Promise.all(
+        [logoVote.registLogo(accounts[0], accounts[1], 'http://logo0'),
+          logoVote.registLogo(accounts[1], accounts[2], 'http://logo1'),
+          logoVote.registLogo(accounts[2], accounts[3], 'http://logo2')
+        ])
+    }).then(function (values) {
+      assert.equal(values.length, 3)
+      return logoVote.getLogos.call()
+    }).then(function (logos) {
+      return logoVote.isLogo.call(logos[0])
+    }).then(function (_isLogoResult) {
+      assert.isOk(_isLogoResult, 'isLogo shoule be ok')
+      return logoVote.isLogo.call(0xdead)
+    }).then(function (_isLogoResult) {
+      assert.isNotOk(_isLogoResult, 'isLogo shoule not be ok')
+    })
+  })
+
+
 })
