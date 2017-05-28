@@ -12,12 +12,15 @@ contract LogoVote is Pausable, SafeMath{
 	Logo[] public logos;
 
 	mapping (address => uint) backers;
+	mapping (address => bool) rewards;
+	uint rewardClaimed;
 
 	uint public votePerETH;
 	uint public totalReward;
 	uint public startBlock;
 	uint public endBlock;
 	address public winner;
+	bool public contractAvailable;
 
 	event ReceiveDonate(address addr, uint value);
 
@@ -38,6 +41,8 @@ contract LogoVote is Pausable, SafeMath{
 		totalReward = 0;
 		startBlock = block.number;
 		endBlock = startBlock + ( 20 * 24 * 60 * 60 / 15 ); //end in 20 days
+		rewardClaimed = 0;
+		rewardClaimed = 0;
 	}
 
 	function sendToFaucet(uint _amount) onlyOwner {
@@ -54,18 +59,23 @@ contract LogoVote is Pausable, SafeMath{
 	function donate(address beneficiary) internal stopInEmergency respectTimeFrame {
 		uint voteToSend = safeMul(msg.value, votePerETH)/(1 ether);
 		if (!vote.transfer(beneficiary, voteToSend)) throw; 
-		backers[beneficiary] += msg.value;
-		totalReward += msg.value;
+		backers[beneficiary] = safeAdd(backers[beneficiary], msg.value);
+		totalReward = safeAdd(totalReward, msg.value);
 
 		ReceiveDonate(beneficiary, msg.value);
 	}
 
-	function withdrawDonates () onlyInEmergency {
-		uint ethToSend = backers[msg.sender];
-		if(ethToSend == 0) throw;
-		if(this.balance < ethToSend) throw;
-		backers[msg.sender] = 0;
-		if(!msg.sender.send(ethToSend)) throw;
+	function claimReward (address _receiver) stopInEmergency afterEnd {
+		if (!isLogo(msg.sender)) throw;
+		if (rewards[msg.sender]) throw;
+		if (rewardClaimed == logos.length) throw;
+		uint amount = totalReward / safeMul(2, logos.length); // all logos share the 50% of rewards
+		if (msg.sender == winner) {
+			amount = safeAdd(amount, totalReward/2);
+		}
+		rewards[msg.sender] = true;
+		rewardClaimed = safeAdd(rewardClaimed, 1);
+		if (!msg.sender.send(amount)) throw;
 	}
 
 	function claimReward (address _receiver) stopInEmergency afterEnd {
@@ -80,11 +90,17 @@ contract LogoVote is Pausable, SafeMath{
 	}
 
 	function claimWinner () onlyOwner afterEnd {
+		if (isLogo(winner)) throw;
 		winner = logos[0];
 		for (uint8 i = 1; i < logos.length; i++) {
 			if (vote.balanceOf(logos[i]) > vote.balanceOf(winner))
 				winner = logos[i];
 		} 
+	}
+
+	function cleanBalance () onlyOwner afterEnd {
+		if (rewardClaimed >= logos.length || block.number < endBlock + 43200) throw;
+		if (!owner.send(this.balance)) throw;
 	}
 
 	function () payable {
