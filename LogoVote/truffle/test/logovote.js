@@ -1,7 +1,8 @@
 const addressRegex = /^(0x)([A-Fa-f0-9]{2}){20}$/;
-var LogoVote = artifacts.require('./LogoVote.sol')
-var Vote = artifacts.require('./Vote.sol')
-var Logo = artifacts.require('./Logo.sol')
+var LogoVote = artifacts.require('LogoVote')
+var Vote = artifacts.require('Vote')
+var Logo = artifacts.require('Logo')
+var LogoVoteMock = artifacts.require('LogoVoteMock');
 
 
 contract('LogoVote', function (accounts) {
@@ -26,28 +27,40 @@ contract('LogoVote', function (accounts) {
     })
   })
 
-  it('registLogo should be ok', function () {
-    var logoVote
-    return LogoVote.deployed().then(function (instance) {
-      logoVote = instance
-      return logoVote.registLogo(accounts[0], accounts[1], 'http://logo0')
-    }).then(function (_tx0) {
-      assert.isOk(_tx0)
-      return logoVote.getLogos.call()
-    }).then(function (logos) {
-      // console.log(logos)
-      assert.equal(logos.length, 1)
-      assert.match(logos[0], addressRegex, 'logo address should be a 20 byte hex address');
-      return Logo.at(logos[0])
-    }).then(function (logo0) {
-      assert.isOk(logo0)
-      return logo0.author.call()
-    }).then(function (author) {
-      assert.equal(author, accounts[1], 'author address should be accounts[1]')
+  it('#registLogo() should increase the length of logos array from 0 to 1 ',
+    function () {
+      var logoVote
+      return LogoVote.deployed().then(function (instance) {
+        logoVote = instance
+        return logoVote.registLogo(accounts[0], accounts[1], 'http://logo0')
+      }).then(function (_tx0) {
+        assert.isOk(_tx0)
+        return logoVote.getLogos.call()
+      }).then(function (logos) {
+        assert.equal(logos.length, 1)
+      })
     })
-  })
 
-  it('isLogo should be ok', function () {
+  it('#registLogo() should create a new logo contract with correct author address',
+    function () {
+      var logoVote
+      return LogoVote.deployed().then(function (instance) {
+        logoVote = instance
+        return logoVote.registLogo(accounts[0], accounts[1], 'http://logo0')
+      }).then(function () {
+        return logoVote.getLogos.call()
+      }).then(function (logos) {
+        assert.match(logos[0], addressRegex, 'logo address should be a 20 byte hex address');
+        return Logo.at(logos[0])
+      }).then(function (logo0) {
+        assert.isOk(logo0)
+        return logo0.author.call()
+      }).then(function (author) {
+        assert.equal(author, accounts[1], 'author address should be accounts[1]')
+      })
+    })
+
+  it('#isLogo() should be ok', function () {
     var logoVote
     return LogoVote.deployed().then(function (instance) {
       logoVote = instance
@@ -62,14 +75,14 @@ contract('LogoVote', function (accounts) {
     }).then(function (logos) {
       return logoVote.isLogo.call(logos[0])
     }).then(function (_isLogoResult) {
-      assert.isOk(_isLogoResult, 'isLogo shoule be ok')
+      assert.isOk(_isLogoResult, 'isLogo should be ok for correct logo address')
       return logoVote.isLogo.call(0xdead)
     }).then(function (_isLogoResult) {
-      assert.isNotOk(_isLogoResult, 'isLogo shoule not be ok')
+      assert.isNotOk(_isLogoResult, 'isLogo should not be ok for 0xdead address')
     })
   })
 
-  it('donate should be ok', function () {
+  it('should show #totalReward() 6.6 ether after #donate() 1.1, 2.2, and 3.3 ether.', function () {
     var logoVote
     return LogoVote.deployed().then(function (instance) {
       logoVote = instance
@@ -79,7 +92,6 @@ contract('LogoVote', function (accounts) {
         value: web3.toWei(1.1, "ether")
       })
     }).then(function (_txr) {
-      // console.log(_txr)
       assert.isOk(_txr)
       return logoVote.totalReward.call()
     }).then(function (_totalReward) {
@@ -99,5 +111,26 @@ contract('LogoVote', function (accounts) {
     })
   })
 
+
+  it('should be correct endBlock number', function () {
+    var logovote
+    //  // 20 * 24 * 60 * 60 / 15 = 115200
+    const BLOCKNUM = 115200
+    LogoVoteMock.new().then(function (instance) {
+      assert.isOk(instance)
+      logovote = instance
+      return Promise.all([logovote.startBlock.call(), logovote.endBlock.call(), logovote.isRespectTimeFrame.call()])
+    }).then(function (values) {
+      assert.equal(values[1].toNumber(), values[0].toNumber() + BLOCKNUM)
+      assert.isTrue(values[2], '#isRespectTimeFrame() should be true')
+      // set mock blcok number to the time after the voting ends.
+      return logovote.setMockedBlockNumber(BLOCKNUM+10)
+    }).then(function (tx) {
+      assert.isOk(tx)
+      return Promise.all([logovote.isAfterEnd.call(), logovote.getBlockNumber.call()])
+    }).then(function (values) {
+      assert.isTrue(values[0], '#isAfterEnd() should be true')
+    })
+  })
 
 })
