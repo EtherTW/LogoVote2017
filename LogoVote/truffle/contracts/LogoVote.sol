@@ -20,17 +20,16 @@ contract LogoVote is Pausable, SafeMath{
 	uint public startBlock;
 	uint public endBlock;
 	address public winner;
-	bool public contractAvailable;
 
 	event ReceiveDonate(address addr, uint value);
 
 	modifier respectTimeFrame() {
-		if (block.number > endBlock) throw;
+		if (!isRespectTimeFrame()) throw;
 		_;
 	}
 
 	modifier afterEnd() {
-		if (block.number < endBlock) throw;
+		if (!isAfterEnd()) throw;
 		_;
 	}
 
@@ -39,9 +38,8 @@ contract LogoVote is Pausable, SafeMath{
 		faucet = new Faucet(vote);
 		votePerETH = 10; // donate 0.1 ether to get 1 vote 
 		totalReward = 0;
-		startBlock = block.number;
+		startBlock = getBlockNumber();
 		endBlock = startBlock + ( 20 * 24 * 60 * 60 / 15 ); //end in 20 days
-		rewardClaimed = 0;
 		rewardClaimed = 0;
 	}
 
@@ -65,7 +63,7 @@ contract LogoVote is Pausable, SafeMath{
 		ReceiveDonate(beneficiary, msg.value);
 	}
 
-	function claimReward (address _receiver) stopInEmergency afterEnd {
+	function claimReward () stopInEmergency afterEnd {
 		if (!isLogo(msg.sender)) throw;
 		if (rewards[msg.sender]) throw;
 		if (rewardClaimed == logos.length) throw;
@@ -78,15 +76,14 @@ contract LogoVote is Pausable, SafeMath{
 		if (!msg.sender.send(amount)) throw;
 	}
 
-	function claimReward (address _receiver) stopInEmergency afterEnd {
-		if (msg.sender != winner) throw;
-		if (!_receiver.send(this.balance)) throw;
-	}
-
 	function isLogo (address _logoAddress) constant returns (bool) {
 		for (uint8 i = 0; i < logos.length; i++) {
 			if (logos[i] == _logoAddress) return true;
 		}
+	}
+
+	function getLogos() constant returns (Logo[]) {
+		return logos;
 	}
 
 	function claimWinner () onlyOwner afterEnd {
@@ -99,12 +96,24 @@ contract LogoVote is Pausable, SafeMath{
 	}
 
 	function cleanBalance () onlyOwner afterEnd {
-		if (rewardClaimed >= logos.length || block.number < endBlock + 43200) throw;
+		if (rewardClaimed >= logos.length || getBlockNumber() < endBlock + 43200) throw;
 		if (!owner.send(this.balance)) throw;
 	}
 
+	function getBlockNumber() constant returns (uint) {
+      return block.number;
+    }
+
+	function isAfterEnd() constant returns (bool) {
+      return getBlockNumber() > endBlock;
+    }
+
+	function isRespectTimeFrame() constant returns (bool) {
+		return getBlockNumber() < endBlock;
+	}
+
 	function () payable {
-		if (block.number > endBlock) throw;
+		if (isAfterEnd()) throw;
 		donate(msg.sender);
 	}
 }

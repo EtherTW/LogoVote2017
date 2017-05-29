@@ -1,11 +1,15 @@
-pragma solidity ^0.4.8;
+pragma solidity ^0.4.10;
 
 import "truffle/DeployedAddresses.sol";
 import "truffle/Assert.sol";
 import "../contracts/LogoVote.sol";
 import "../contracts/Vote.sol";
+import "./helpers/LogoVoteMock.sol";
+import "./helpers/ThrowProxy.sol";
 
 contract TestLogoVote {
+
+  ThrowProxy throwProxy;
 
   function testInitialUsingDeployedContract() {
     LogoVote logovote = LogoVote(DeployedAddresses.LogoVote());
@@ -16,18 +20,41 @@ contract TestLogoVote {
     Assert.equal(vote.initialSupply(), 10000, "Vote should have 10000 initialSupply initially");
   }
 
-  function testInitialWithNewLogoVote() {
-    LogoVote logovote = new LogoVote();
-    Assert.equal(logovote.totalReward(), 0 , "LogoVote should have 0 reward initially");
+  function testInitialEndBlock() {
+     LogoVoteMock logovote = new LogoVoteMock();
+     Assert.equal(logovote.endBlock() ,115200 + logovote.startBlock() , 'Should return correct block number');
   }
+
+  function testIsAfterEndAndIsRespectTimeFrame() {
+     LogoVoteMock logovote = new LogoVoteMock();
+     logovote.setMockedBlockNumber(logovote.endBlock()-1);
+     Assert.isTrue(logovote.isRespectTimeFrame() , 'Should return true');
+     logovote.setMockedBlockNumber(logovote.endBlock()+1);
+     Assert.isTrue(logovote.isAfterEnd() , 'Should return true');
+  }
+
+
+  // 
+  // http://truffleframework.com/tutorials/testing-for-throws-in-solidity-tests
+  // https://github.com/aragon/aragon-network-token/blob/master/test/helpers/ThrowProxy.sol
+  // 
+  //  Error: VM Exception while processing transaction: invalid opcode
+  //
+  // function testWhenClaimWinnerBeforeEndBlock() {
+  //  TestLogoVote(throwProxy).throwsWhenClaimWinnderBeforeEndBlock();
+  //  throwProxy.assertThrows("Should have thrown when vote is not over yet");
+  // }
+
+  //function throwsWhenClaimWinnderBeforeEndBlock() {
+  //   LogoVoteMock logovote = new LogoVoteMock();
+  //   logovote.setMockedBlockNumber(101);
+  //   logovote.claimWinner();
+  //}
 
   function testInitialWithNewVote() {
     Vote vote = new Vote();
     Assert.equal(vote.totalSupply(), 10000, "Vote should have 10000 totalSupply initially");
     Assert.equal(vote.initialSupply(), 10000, "Vote should have 10000 initialSupply initially");
-    // https://stackoverflow.com/questions/42783106/member-equal-is-not-available-in-typelibrary-assert
-    // Member "equal" is not available in type(library Assert) outside of storage.
-    // Assert.equal(vote.symbol(), "EthTaipei Logo", "Symbol should be \"EthTaipei Logo\"");
   }
 
 }
