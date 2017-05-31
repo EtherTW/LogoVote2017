@@ -23,8 +23,8 @@ before_install:
   - npm --version
   - gcc --version
   - g++ --version
-
-before_script:
   - npm install -g ethereumjs-testrpc
   - npm install -g truffle
-  - npm install -g truffle-hdwallet-provider
+
+script:
+  - testrpc > /dev/null &
