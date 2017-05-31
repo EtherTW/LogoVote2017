@@ -26,5 +26,5 @@ before_install:
   - npm install -g ethereumjs-testrpc
   - npm install -g truffle
 
-script:
+before_script:
   - testrpc > /dev/null &
