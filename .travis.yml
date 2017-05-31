@@ -23,7 +23,8 @@ before_install:
   - npm --version
   - gcc --version
   - g++ --version
-
-before_script:
   - npm install -g ethereumjs-testrpc
   - npm install -g truffle
+
+before_script:
+  - testrpc > /dev/null &

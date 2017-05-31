@@ -1,4 +1,4 @@
 test: test-LogoVote
 test-LogoVote:
-	cd LogoVote/truffle && testrpc &
-	cd LogoVote/truffle && truffle test
+	cd LogoVote/taipei-eth-logovote && npm i
+	cd LogoVote/taipei-eth-logovote && truffle test
