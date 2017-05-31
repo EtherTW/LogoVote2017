@@ -17,7 +17,7 @@ npm install -g truffle
 // npm install -g ethereumjs-testrpc --msvs_version=2015
 // npm install -g truffle --msvs_version=2015
 //
-mkdir truffle && cd truffle 
+mkdir taipei-eth-logovote && cd taipei-eth-logovote 
 truffle init
 ```
 
@@ -25,6 +25,7 @@ truffle init
 
 ```
 testrpc &
+cd taipei-eth-logovote && npm install
 truffle test
 ```
 
@@ -39,7 +40,7 @@ truffle test
 * Infura API https://infura.io/docs/
 
 ```
-npm install truffle-hdwallet-provider
+cd taipei-eth-logovote
 TEST_MNEMONIC="kovan foo bar blah ..."
 truffle migrate --network kovan --verbose-rpc
 TEST_MNEMONIC="rinkeby foo bar blah ..."
