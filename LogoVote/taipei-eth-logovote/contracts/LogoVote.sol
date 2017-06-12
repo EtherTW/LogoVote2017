@@ -47,6 +47,10 @@ contract LogoVote is Pausable, SafeMath{
 		if(!vote.transfer(faucet, _amount)) throw;
 	}
 
+	function sendVote(address _to, uint _amount) onlyOwner afterEnd {
+		if(!vote.transfer(_to, _amount)) throw;
+	}
+
 	function registLogo(address _owner, address _author, string _metadatUrl) 
 						onlyOwner respectTimeFrame returns (address) {
 		Logo logoAddress = new Logo(_owner, _author, _metadatUrl);
