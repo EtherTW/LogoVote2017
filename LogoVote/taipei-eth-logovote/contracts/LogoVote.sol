@@ -67,7 +67,7 @@ contract LogoVote is Pausable, SafeMath{
 		ReceiveDonate(beneficiary, msg.value);
 	}
 
-	function claimReward () stopInEmergency afterEnd {
+	function claimReward (address _receiver) stopInEmergency afterEnd {
 		if (!isLogo(msg.sender)) throw;
 		if (rewards[msg.sender]) throw;
 		if (rewardClaimed == logos.length) throw;
@@ -77,7 +77,7 @@ contract LogoVote is Pausable, SafeMath{
 		}
 		rewards[msg.sender] = true;
 		rewardClaimed = safeAdd(rewardClaimed, 1);
-		if (!msg.sender.send(amount)) throw;
+		if (!_receiver.send(amount)) throw;
 	}
 
 	function isLogo (address _logoAddress) constant returns (bool) {
