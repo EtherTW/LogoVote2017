@@ -36,10 +36,10 @@ contract LogoVote is Pausable, SafeMath{
 	function LogoVote() {
 		vote = new Vote();
 		faucet = new Faucet(vote);
-		votePerETH = 10; // donate 0.1 ether to get 1 vote 
+		votePerETH = 1000; // donate 0.001 ether to get 1 vote 
 		totalReward = 0;
 		startBlock = getBlockNumber();
-		endBlock = startBlock + ( 20 * 24 * 60 * 60 / 15 ); //end in 20 days
+		endBlock = startBlock + ( 30 * 24 * 60 * 60 / 15 ); //end in 30 days
 		rewardClaimed = 0;
 	}
 
