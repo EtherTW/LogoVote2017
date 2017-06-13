@@ -43,12 +43,9 @@ contract LogoVote is Pausable, SafeMath{
 		rewardClaimed = 0;
 	}
 
+	// functions only for owner 
 	function sendToFaucet(uint _amount) onlyOwner {
 		if(!vote.transfer(faucet, _amount)) throw;
-	}
-
-	function sendVote(address _to, uint _amount) onlyOwner afterEnd {
-		if(!vote.transfer(_to, _amount)) throw;
 	}
 
 	function registLogo(address _owner, address _author, string _metadatUrl) 
@@ -56,38 +53,6 @@ contract LogoVote is Pausable, SafeMath{
 		Logo logoAddress = new Logo(_owner, _author, _metadatUrl);
 		logos.push(logoAddress);
 		return logoAddress;
-	}
-
-	function donate(address beneficiary) internal stopInEmergency respectTimeFrame {
-		uint voteToSend = safeMul(msg.value, votePerETH)/(1 ether);
-		if (!vote.transfer(beneficiary, voteToSend)) throw; 
-		backers[beneficiary] = safeAdd(backers[beneficiary], msg.value);
-		totalReward = safeAdd(totalReward, msg.value);
-
-		ReceiveDonate(beneficiary, msg.value);
-	}
-
-	function claimReward (address _receiver) stopInEmergency afterEnd {
-		if (!isLogo(msg.sender)) throw;
-		if (rewards[msg.sender]) throw;
-		if (rewardClaimed == logos.length) throw;
-		uint amount = totalReward / safeMul(2, logos.length); // all logos share the 50% of rewards
-		if (msg.sender == winner) {
-			amount = safeAdd(amount, totalReward/2);
-		}
-		rewards[msg.sender] = true;
-		rewardClaimed = safeAdd(rewardClaimed, 1);
-		if (!_receiver.send(amount)) throw;
-	}
-
-	function isLogo (address _logoAddress) constant returns (bool) {
-		for (uint8 i = 0; i < logos.length; i++) {
-			if (logos[i] == _logoAddress) return true;
-		}
-	}
-
-	function getLogos() constant returns (Logo[]) {
-		return logos;
 	}
 
 	function claimWinner () onlyOwner afterEnd {
@@ -101,7 +66,53 @@ contract LogoVote is Pausable, SafeMath{
 
 	function cleanBalance () onlyOwner afterEnd {
 		if (rewardClaimed >= logos.length || getBlockNumber() < endBlock + 43200) throw;
+		if(!vote.transfer(owner, vote.balanceOf(this))) throw;
 		if (!owner.send(this.balance)) throw;
+	}
+
+	// normal user can donate to get votes
+	function donate(address beneficiary) internal stopInEmergency respectTimeFrame {
+		uint voteToSend = safeMul(msg.value, votePerETH)/(1 ether);
+		if (!vote.transfer(beneficiary, voteToSend)) throw; 
+		backers[beneficiary] = safeAdd(backers[beneficiary], msg.value);
+		totalReward = safeAdd(totalReward, msg.value);
+
+		ReceiveDonate(beneficiary, msg.value);
+	}
+
+	// normal user can get back their funds if in emergency 
+	function getFunds() onlyInEmergency {
+		if (backers[msg.sender] == 0) throw;
+		uint amount = backers[msg.sender];
+		backers[msg.sender] = 0;
+
+		if(!msg.sender.send(amount)) throw;
+	}
+
+	// logo's owner can claim their rewards after end 
+	function claimReward (address _receiver) stopInEmergency afterEnd {
+		if (!isLogo(msg.sender)) throw;
+		if (rewards[msg.sender]) throw;
+		if (rewardClaimed == logos.length) throw;
+		uint amount = totalReward / safeMul(2, logos.length); // all logos share the 50% of rewards
+		if (msg.sender == winner) {
+			amount = safeAdd(amount, totalReward/2);
+		}
+		rewards[msg.sender] = true;
+		rewardClaimed = safeAdd(rewardClaimed, 1);
+		if (!_receiver.send(amount)) throw;
+	}
+
+
+	// helper functions 
+	function isLogo (address _logoAddress) constant returns (bool) {
+		for (uint8 i = 0; i < logos.length; i++) {
+			if (logos[i] == _logoAddress) return true;
+		}
+	}
+
+	function getLogos() constant returns (Logo[]) {
+		return logos;
 	}
 
 	function getBlockNumber() constant returns (uint) {
