@@ -23,7 +23,7 @@ contract('LogoVote', function (accounts) {
       assert.isOk(voteInstance)
       return voteInstance.totalSupply.call()
     }).then(function (totalSupply) {
-      assert.equal(totalSupply.valueOf(), 10000)
+      assert.equal(totalSupply.valueOf(), 100000)
     })
   })
 
@@ -114,8 +114,8 @@ contract('LogoVote', function (accounts) {
 
   it('should be correct endBlock number', function () {
     var logovote
-    //  // 20 * 24 * 60 * 60 / 15 = 115200
-    const BLOCKNUM = 115200
+    //  // 30 * 24 * 60 * 60 / 15 = 172800
+    const BLOCKNUM = 172800
     LogoVoteMock.new().then(function (instance) {
       assert.isOk(instance)
       logovote = instance
