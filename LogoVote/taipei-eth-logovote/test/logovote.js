@@ -66,8 +66,8 @@ contract('LogoVote', function (accounts) {
       logoVote = instance
       return Promise.all(
         [logoVote.registLogo(accounts[0], accounts[1], 'http://logo0'),
-          logoVote.registLogo(accounts[1], accounts[2], 'http://logo1'),
-          logoVote.registLogo(accounts[2], accounts[3], 'http://logo2')
+        logoVote.registLogo(accounts[1], accounts[2], 'http://logo1'),
+        logoVote.registLogo(accounts[2], accounts[3], 'http://logo2')
         ])
     }).then(function (values) {
       assert.equal(values.length, 3)
@@ -124,7 +124,7 @@ contract('LogoVote', function (accounts) {
       assert.equal(values[1].toNumber(), values[0].toNumber() + BLOCKNUM)
       assert.isTrue(values[2], '#isRespectTimeFrame() should be true')
       // set mock blcok number to the time after the voting ends.
-      return logovote.setMockedBlockNumber(BLOCKNUM+10)
+      return logovote.setMockedBlockNumber(BLOCKNUM + 10)
     }).then(function (tx) {
       assert.isOk(tx)
       return Promise.all([logovote.isAfterEnd.call(), logovote.getBlockNumber.call()])
@@ -133,4 +133,78 @@ contract('LogoVote', function (accounts) {
     })
   })
 
+
+  it('#claimReward() should distribute correct rewards to logo authors',
+    function () {
+      var logoVote
+      var vote
+      var contract_owner_account = accounts[0]
+      var author1_account = accounts[1]
+      var author1_owner_account = accounts[2]
+      var author2_account = accounts[3]
+      var author2_owner_account = accounts[4]
+      var voter1_account = accounts[5]
+      var author1_logo_address
+      var author2_logo_address
+      var author1_account_init_balance
+      var author2_account_init_balance
+      const BLOCKNUM = 172800
+
+      return LogoVoteMock.new().then(function (instance) {
+        logoVote = instance
+        return Promise.all([
+          logoVote.registLogo(author1_owner_account, author1_account, 'http://logo1'),
+          logoVote.registLogo(author2_owner_account, author2_account, 'http://logo2'),
+          logoVote.sendTransaction({
+            from: voter1_account,
+            value: web3.toWei(2.2, "ether")
+          })
+        ])
+      }).then(function (instance) {
+        return Promise.all([
+          logoVote.getLogos(),
+          logoVote.vote(),
+          web3.eth.getBalance(author1_account),
+          web3.eth.getBalance(author2_account)
+        ])
+      }).then(function (values) {
+        author1_logo_address = values[0][0]
+        author2_logo_address = values[0][1]
+        vote = Vote.at(values[1])
+        author1_account_init_balance = values[2]
+        author2_account_init_balance = values[3]
+        return vote.balanceOf(voter1_account)
+      }).then(function (balance) {
+        assert.equal(balance.toNumber(), 2200, "voter1 should get 2200 vote token")
+        return vote.transfer(author2_logo_address, 2200, { from: voter1_account })
+      }).then(function () {
+        return logoVote.setMockedBlockNumber(BLOCKNUM + 10)
+      }).then(function () {
+        return logoVote.claimWinner()
+      }).then(function () {
+        return logoVote.winner()
+      }).then(function (winner) {
+        assert.equal(winner, author2_logo_address, "winner should be author2")
+        var author1Logo = Logo.at(author1_logo_address)
+        var author2Logo = Logo.at(author2_logo_address)
+        return Promise.all([
+          author1Logo.claimReward({ from: author1_owner_account }),
+          author2Logo.claimReward({ from: author2_owner_account })
+        ])
+      }).then(function () {
+        return Promise.all([
+          web3.eth.getBalance(author1_account),
+          web3.eth.getBalance(author2_account)
+        ])
+      }).then(function (account_balances) {
+        author1_init_ether = web3.fromWei(author1_account_init_balance, "ether").toNumber()
+        author1_now_ether = web3.fromWei(account_balances[0], "ether").toNumber()
+        author2_init_ether = web3.fromWei(author2_account_init_balance, "ether").toNumber()
+        author2_now_ether = web3.fromWei(account_balances[1], "ether").toNumber()
+        var author1_reward = author1_now_ether - author1_init_ether
+        var author2_reward = author2_now_ether - author2_init_ether
+        assert.isOk(Math.abs(2.2 * 0.25 - author1_reward) < 0.000001)
+        assert.isOk(Math.abs(2.2 * 0.75 - author2_reward) < 0.000001)
+      })
+    })
 })
