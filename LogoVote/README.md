@@ -7,7 +7,7 @@ Read the [general guideline](https://docs.google.com/document/d/1hHLMnYxf4SAOSwG
 ## Usage
 ### Two ways to get vote
 - donate to the LogoVote by send ethers to LogoVote address
-  - 0.1 ether get 1 vote
+  - 0.001 ether get 1 vote
   - all the funds will be the reward to the winner (need discussion)
 - get from faucet by send 0 ether transaction to Faucet address
   - it will give 1 vote to your ethereum account
