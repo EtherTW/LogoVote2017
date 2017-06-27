@@ -58,6 +58,27 @@ final parameter is for the logo’s metadata, give it a URL. Or using IPFS to st
 https://ropsten.etherscan.io/address/0x4720969735e6495cfe1029e5638f22f563079d9e#
 ```
 
+## Address of mainnet
+### Main Contract
+```
+0x3Ab1d534Bb477f516817eFaAf0B569f419b8e292
+```
+
+### Faucet
+```
+0x5041bfBa3DEB602d794F6CF6C3Db50D572912c40
+```
+
+### TLV token
+```
+0x795a9bFa0B30b92eFE663cBfbEC1656b6378748E
+```
+
+### Start / End Block
+```
+3867102 / 4039902
+```
+
 ## Address on Kovan testnet
 
 ### LogoVote (main contract)
